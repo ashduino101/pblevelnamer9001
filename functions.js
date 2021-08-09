@@ -1,4 +1,5 @@
 const {load: csv_load} = require('csv-load-sync');
+const linkify = require('linkifyjs');
 
 class InvalidShortName extends Error {}
 
@@ -46,8 +47,13 @@ const pb1_levels = csv_load('./pb1_levels.csv', {
     }
 });
 
-
+function removeLinks(text){
+    for (var link of linkify.find(text)){
+        text = text.replace(link.value, "");
+    }
+    return text
+}
 
 module.exports = {
-    pb2_levels, pb1_levels, InvalidShortName, ShortName
+    pb2_levels, pb1_levels, InvalidShortName, ShortName, removeLinks
 }
