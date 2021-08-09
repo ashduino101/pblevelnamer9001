@@ -1,5 +1,6 @@
 //dependencies
 const Discord = require('discord.js');
+const message = require('discord.js');
 const { Client, Intents } = require('discord.js');
 const { token } = require('./config.json');
 const myIntents = new Intents();
@@ -7,7 +8,8 @@ myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES);
 const client = new Client({ intents: myIntents });
 const winston = require('winston');
 const prefix = '?'
-const { noPrefix } = require('./noPrefix.js');
+//var noPrefix = require('./noPrefix');
+//const { noprefix } = require('./noPrefix.js');
 
 //level images
 
@@ -160,9 +162,9 @@ client.on('message', message =>{
 		break
 	};
 		
-	noPrefix();
+	//eval(noPrefix.readFileSync('noPrefix.js')+'');
     //ignores message if it does not contain the prefix or is sent by a bot
-/*	//DO NOT REMOVE
+	//DO NOT REMOVE
     message.content = message.content + "this is required please dont remove this line";
     if(!((message.content.search(/[1-8]-[0-9]+/s) >= 0) || (message.content.search(/((w[1-8]c?))+?/s) >= 0)) || message.author.bot) return;
     
@@ -280,7 +282,7 @@ client.on('message', message =>{
 		  logger.log('info', reallevel + " has been removed from cooldown.");
         }, 180000);
     }
-	*/
+	
 
 
 })
