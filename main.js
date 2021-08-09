@@ -39,8 +39,9 @@ const helpEmbed = new Discord.MessageEmbed()
 .setThumbnail('https://i.imgur.com/vz8gnvi.jpg')
 .setDescription("Detects level numbers and provides level names.")
 .addFields(
-	{ name: 'Syntax', value: 'World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)' },
+	{ name: 'Level Syntax', value: 'World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)' },
 	{ name: 'Info', value: 'The bot does not require a prefix and will detect any level number in a message.' },
+	{ name: 'Worlds', value: 'You can also show the levels and information about a world with ?w(world number) (e.g. ?w1, ?w4)' },
 	)
 .setTimestamp()
 .setFooter('Made by Masonator, ham, and ashduino101', 'https://i.imgur.com/vz8gnvi.jpg');
@@ -57,8 +58,10 @@ var pb2_world_5_levels = pb2_level_names.slice(64, 80);
 var pb1_world_5_levels = pb1_level_names.slice(64, 80);
 var pb2_world_6_levels = pb2_level_names.slice(80, 96);
 var pb1_world_6_levels = pb1_level_names.slice(80, 96);
+var pb1_world_7_levels = pb1_level_names.slice(96, 112);
+var pb1_world_8_levels = pb1_level_names.slice(112, 128);
 
-
+//World embeds
 const world1embed = new Discord.MessageEmbed()
 .setColor('#2bd126')
 .setTitle('World 1')
@@ -80,7 +83,7 @@ const world3embed = new Discord.MessageEmbed()
 	{ name: 'Poly Bridge 1: Snow Drift', value: pb1_world_3_levels, inline: true },
 	{ name: 'Poly Bridge 2: Tranquil Oasis', value: pb2_world_3_levels, inline: true },
 	)
-	const world4embed = new Discord.MessageEmbed()
+const world4embed = new Discord.MessageEmbed()
 .setColor('#6f916d')
 .setTitle('World 4')
 .addFields(
@@ -100,6 +103,18 @@ const world6embed = new Discord.MessageEmbed()
 .addFields(
 	{ name: 'Poly Bridge 1: Zen Gardens', value: pb1_world_6_levels, inline: true },
 	{ name: 'Poly Bridge 2: Steamtown', value: pb2_world_6_levels, inline: true },
+	)
+const world7embed = new Discord.MessageEmbed()
+.setColor('#00d17d')
+.setTitle('World 7')
+.addFields(
+	{ name: 'Poly Bridge 1: Tropical Paradise', value: pb1_world_7_levels, inline: true },
+	)
+const world8embed = new Discord.MessageEmbed()
+.setColor('#02e3cc')
+.setTitle('World 8')
+.addFields(
+	{ name: 'Poly Bridge 1: Area 52', value: pb1_world_8_levels, inline: true },
 	)
 
 
