@@ -6,7 +6,11 @@ const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES);
 const client = new Client({ intents: myIntents });
 const winston = require('winston');
-const worldprefix = '?w'
+const prefix = '?'
+const { noPrefix } = require('./noPrefix.js');
+
+//level images
+
 //Holds the world names for PB1 and PB2
 var pb1_world_names = ["Alpine Meadows", "Desert Winds", "Snow Drift", "Ancient Ruins", "80s Fun Land", "Zen Gardens", "Tropical Paradise", "Area 52"];
 var pb2_world_names = ["Pine Mountains", "Glowing Gorge", "Tranquil Oasis", "Sanguine Gulch", "Serenity Valley", "Steamtown", "N/A", "N/A"];
@@ -128,40 +132,41 @@ client.on('message', message =>{
 		logger.log('info', message.member + "used ?help!");
         return;
     }
-	let args = message.content.substring(worldprefix.length).split(' ')
+	let args = message.content.substring(prefix.length).split(' ')
 	switch(args[0]){
-		case '1':
+		case 'w1':
 		message.channel.send(world1embed);
 		break
-		case '2':
+		case 'w2':
 		message.channel.send(world2embed);
 		break
-		case '3':
+		case 'w3':
 		message.channel.send(world3embed);
 		break
-		case '4':
+		case 'w4':
 		message.channel.send(world4embed);
 		break
-		case '5':
+		case 'w5':
 		message.channel.send(world5embed);
 		break
-		case '6':
+		case 'w6':
 		message.channel.send(world6embed);
 		break
-		case '7':
+		case 'w7':
 		message.channel.send(world7embed);
 		break
-		case '8':
+		case 'w8':
 		message.channel.send(world8embed);
 		break
-	}
+	};
 		
-	
+	noPrefix();
     //ignores message if it does not contain the prefix or is sent by a bot
-	//DO NOT REMOVE
+/*	//DO NOT REMOVE
     message.content = message.content + "this is required please dont remove this line";
     if(!((message.content.search(/[1-8]-[0-9]+/s) >= 0) || (message.content.search(/((w[1-8]c?))+?/s) >= 0)) || message.author.bot) return;
     
+
 	//If the command is in the world-level format, it will grab the world#
     if(message.content.search(/([1-8]-[0-9]+c?(?!w))/s) >= 0) var world = message.content.match(/[1-8](?=-)/s);
     
@@ -275,6 +280,8 @@ client.on('message', message =>{
 		  logger.log('info', reallevel + " has been removed from cooldown.");
         }, 180000);
     }
+	*/
+
 
 })
 // logs in the bot (must be last)
