@@ -44,7 +44,7 @@ client.on('messageCreate', async message => {
         return;
     }
     
-    for (const match of functions.removeLinks(message.content).matchAll(/\b([0-9]{1,2})-([0-9]{1,2})([Cc]?)\b/g)){
+    for (const match of functions.removeLinks(message.content).matchAll(/(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)/g)){
         // Loop through all potential candidates for level names, stop if one is found that is valid
         let short_name = new functions.ShortName(match[0]);
         var matching_pb2_levels = functions.pb2_levels.filter(level => level["short_name"].isSame(short_name));

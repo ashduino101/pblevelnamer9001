@@ -11,7 +11,7 @@ class ShortName {
         this.valid = false;
         
         short_name = short_name.toLowerCase();
-        let result = short_name.match(/\b([0-9]{1,2})-([0-9]{1,2})([Cc]?)\b/);
+        let result = short_name.match(/([0-9]{1,2})-([0-9]{1,2})([Cc]?)/);
         if (result == null) return;
         this.world = parseInt(result[1]);
         this.level = parseInt(result[2]);
