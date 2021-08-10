@@ -5,26 +5,20 @@ class InvalidShortName extends Error {}
 
 class ShortName {
     constructor(short_name){
-        try {
-            short_name = short_name.toLowerCase();
-            if ([...short_name.match(/-/g)].length == 1){
-                this.world = parseInt(short_name.split("-")[0]);
-                this.level = parseInt(short_name.split("-")[1].replace(/[Cc]/, ""));
-            }
-            else
-                throw InvalidShortName;
-            if (isNaN(this.world) || isNaN(this.level))
-                throw InvalidShortName;
-            
-            this.is_challenge_level = short_name.endsWith("c");
-            this.valid = true;
-        }
-        catch (InvalidShortName){
-            this.world = 0;
-            this.level = 0;
-            this.is_challenge_level = false;
-            this.valid = false;
-        }
+        this.world = 0;
+        this.level = 0;
+        this.is_challenge_level = false;
+        this.valid = false;
+        
+        short_name = short_name.toLowerCase();
+        let result = short_name.match(/\b([0-9]{1,2})-([0-9]{1,2})([Cc]?)\b/);
+        if (result == null) return;
+        this.world = parseInt(result[1]);
+        this.level = parseInt(result[2]);
+        this.is_challenge_level = result[3].length > 0;
+        if (isNaN(this.world) || isNaN(this.level)) return;
+        this.valid = true;
+        
     }
 
     toString(){

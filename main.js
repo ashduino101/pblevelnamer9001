@@ -44,28 +44,25 @@ client.on('messageCreate', async message => {
         return;
     }
     
-    for (const match of functions.removeLinks(message.content).matchAll(/[0-9]+-[0-9]+[Cc]?/g)){
+    for (const match of functions.removeLinks(message.content).matchAll(/\b([0-9]{1,2})-([0-9]{1,2})([Cc]?)\b/g)){
         // Loop through all potential candidates for level names, stop if one is found that is valid
         let short_name = new functions.ShortName(match[0]);
-        var pb2_levels = functions.pb2_levels.filter(level => level["short_name"].isSame(short_name));
-        var pb1_levels = functions.pb1_levels.filter(level => level["short_name"].isSame(short_name));
+        var matching_pb2_levels = functions.pb2_levels.filter(level => level["short_name"].isSame(short_name));
+        var matching_pb1_levels = functions.pb1_levels.filter(level => level["short_name"].isSame(short_name));
         
-        if (pb2_levels.length == 0 && pb1_levels.length == 0) continue;
+        if (matching_pb2_levels.length == 0 && matching_pb1_levels.length == 0) continue;
         
-        const levelEmbed = new Discord.MessageEmbed()
-        .setTitle(`Level Names for \`${short_name}\``)
-        .setColor('#AA99FF')
+        let rv = `Level Names for \`${short_name}\`\n`;
         
-        if (pb1_levels.length > 0 && !short_name.is_challenge_level){
-            levelEmbed.addField("PB1:", `${pb1_world_names[short_name.world - 1]} ~ ${pb1_levels[0]["name"]}`, true);
+        if (matching_pb1_levels.length > 0 && !short_name.is_challenge_level){
+            rv += `PB1: ${pb1_world_names[short_name.world - 1]} ~ ${matching_pb1_levels[0]["name"]}\n`;
         }
-        if (pb2_levels.length > 0){
-            let pb2_rv = `${pb2_world_names[short_name.world - 1]} ~ ${pb2_levels[0]["name"]}`;
+        if (matching_pb2_levels.length > 0){
+            rv += `PB2: ${pb2_world_names[short_name.world - 1]} ~ ${matching_pb2_levels[0]["name"]}`;
             if (short_name.is_challenge_level)
-                pb2_rv += `\nChallenge: ${pb2_levels[0]["challenge_description"]}`;
-            levelEmbed.addField("PB2:", pb2_rv, true);
+                rv += `\nChallenge: ${matching_pb2_levels[0]["challenge_description"]}`;
         }
-        message.channel.send({ embeds: [levelEmbed] });
+        message.channel.send(rv);
         return;
     }
 })
