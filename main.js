@@ -19,7 +19,7 @@ client.once('ready', () => {
     console.log('Bot is now online.')
 });
 
-let TIMEOUT_AMOUNT = 180;
+let TIMEOUT_AMOUNT = 300;
 let currTime = () => Math.round(Date.now() / 1000)
 let spokenRecently = {};
 
@@ -28,7 +28,7 @@ setInterval(() => {
     let now = currTime();
     for (let k in spokenRecently){
         if (now - spokenRecently[k] > TIMEOUT_AMOUNT){
-            delete sp
+            delete spokenRecently[k];
         }
     }
 }, 10000);
