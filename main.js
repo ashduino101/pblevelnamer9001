@@ -39,10 +39,9 @@ const helpEmbed = new Discord.MessageEmbed()
 .setColor('#f26711')
 .setTitle('Poly Bridge Level Namer Help')
 .setThumbnail(thumbnail_url)
-.setDescription("Detects level numbers and provides level names.")
+.setDescription("Detects level numbers in chat messages and provides the name of that level.")
 .addFields(
-    { name: 'Level Syntax', value: 'World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)' },
-    { name: 'Info', value: 'The bot does not require a prefix and will detect any level number in a message.' }
+    { name: 'Level Syntax', value: 'World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)' }
 )
 .setTimestamp()
 .setFooter('Made by Masonator, ham, ashduino101, and Conqu3red', thumbnail_url);
