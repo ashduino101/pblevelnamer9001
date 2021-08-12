@@ -33,19 +33,19 @@ setInterval(() => {
     }
 }, 10000);
 
-
+const thumbnail_url = "https://cdn.discordapp.com/avatars/873283362561855488/906f1cdbc597b4a01f1df2140f395d8f.png";
 //creates the help embed
 const helpEmbed = new Discord.MessageEmbed()
 .setColor('#f26711')
 .setTitle('Poly Bridge Level Namer Help')
-.setThumbnail('https://i.imgur.com/vz8gnvi.jpg')
+.setThumbnail(thumbnail_url)
 .setDescription("Detects level numbers and provides level names.")
 .addFields(
     { name: 'Level Syntax', value: 'World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)' },
     { name: 'Info', value: 'The bot does not require a prefix and will detect any level number in a message.' }
 )
 .setTimestamp()
-.setFooter('Made by Masonator, ham, ashduino101, and Conqu3red', 'https://i.imgur.com/vz8gnvi.jpg');
+.setFooter('Made by Masonator, ham, ashduino101, and Conqu3red', thumbnail_url);
 
 
 //checks for messages
