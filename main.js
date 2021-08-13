@@ -6,6 +6,7 @@ const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES);
 const client = new Client({ intents: myIntents });
 const functions = require("./functions");
+fs = require('fs');
 
 //level images : TODO
 
@@ -46,6 +47,28 @@ const helpEmbed = new Discord.MessageEmbed()
 .setTimestamp()
 .setFooter('Made by Masonator, ham, ashduino101, and Conqu3red', thumbnail_url);
 
+const prefix_storage_path = "./prefix_toggles.json";
+
+function load_prefix_data(){
+    if (fs.existsSync(prefix_storage_path)){
+        let data = fs.readFileSync(prefix_storage_path, "utf8");
+        data = JSON.parse(data);
+        return data;
+    }
+    return {};
+}
+
+function requires_prefix(channel_id){
+    let data = load_prefix_data();
+    return data[channel_id] || false;
+}
+
+function toggle_prefix(channel_id){
+    let data = load_prefix_data();
+    data[channel_id] = !data[channel_id];
+    fs.writeFileSync(prefix_storage_path, JSON.stringify(data), "utf8");
+    return data[channel_id];
+}
 
 //checks for messages
 client.on('messageCreate', async message => {
@@ -56,8 +79,19 @@ client.on('messageCreate', async message => {
         message.channel.send({ embeds: [helpEmbed] });
         return;
     }
+
+    if (message.content == "?toggleprefix"){
+        let needs_prefix = toggle_prefix(message.channel.id);
+        if (needs_prefix)
+            message.channel.send("Prefix enabled for this channel.");
+        else
+            message.channel.send("Prefix disabled for this channel.")
+        return;
+    }
     
-    for (const match of functions.removeLinks(message.content).matchAll(/(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)/g)){
+
+    let pattern = requires_prefix(message.channel.id) ? /^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$/g : /(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)/g
+    for (const match of functions.removeLinks(message.content).matchAll(pattern)){
         // Loop through all potential candidates for level names, stop if one is found that is valid
         let short_name = new functions.ShortName(match[0]);
         var matching_pb2_levels = functions.pb2_levels.filter(level => level["short_name"].isSame(short_name));
