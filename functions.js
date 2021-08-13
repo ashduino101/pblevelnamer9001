@@ -26,7 +26,7 @@ class ShortName {
     }
 
     isSame(other){
-        return this.valid == other.valid && this.level == other.level && this.world == other.world;
+        return this.valid == other.valid && this.level == other.level && this.world == other.world && this.is_challenge_level == other.is_challenge_level;
     }
 }
 

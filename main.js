@@ -114,7 +114,7 @@ client.on('messageCreate', async message => {
         if (matching_pb2_levels.length > 0){
             rv += `PB2: ${pb2_world_names[short_name.world - 1]} ~ ${matching_pb2_levels[0]["name"]}`;
             if (short_name.is_challenge_level)
-                rv += `\nChallenge: ${matching_pb2_levels[0]["challenge_description"]}`;
+                rv += `\nChallenge: ${matching_pb2_levels[0]["detail"]}`;
         }
         message.channel.send(rv);
         return;
