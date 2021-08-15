@@ -117,7 +117,7 @@ async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: st
         rv += "__PB2:__\n"
         matches = bestMatches(pb2_levels, levelQuery)
         for level, confidence in matches:
-            rv += f"{level['short_name']} {pb1_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
+            rv += f"{level['short_name']} {pb2_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
     
     await ctx.message.channel.send(rv.strip())
 
