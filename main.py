@@ -92,6 +92,7 @@ async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChan
     await ctx.send(message)
 
 @bot.command(name="name", help="reverse search a level by it's name\nQuery must be at least 3 characters.")
+@commands.has_permissions(manage_channels=True)
 async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: str=""):
     if game:
         if game.lower() not in ("pb1", "pb2"):
@@ -124,7 +125,6 @@ async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: st
     await ctx.message.channel.send(rv if rv else "No results with an 85%+ match.")
 
 @bot.event
-@commands.has_permissions(manage_channels=True)
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
