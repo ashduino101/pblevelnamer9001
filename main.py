@@ -4,7 +4,7 @@ from typing import *
 import discord
 import json
 import re
-from discord.ext import commands
+from discord.ext import commands, tasks
 from functions import *
 import math
 
@@ -48,11 +48,14 @@ pb2_world_names = ["Pine Mountains", "Glowing Gorge", "Tranquil Oasis", "Sanguin
 TIMEOUT_AMOUNT = 300
 spokenRecently = {}
 
-def clear_old_ratelimits():
+@tasks.loop(seconds=10)
+async def clear_old_ratelimits():
     now = time.time()
-    for k in spokenRecently.keys():
+    for k in list(spokenRecently.keys()):
         if now - spokenRecently[k] > TIMEOUT_AMOUNT:
             del spokenRecently[k]
+
+clear_old_ratelimits.start()
 
 @bot.event
 async def on_ready():
@@ -127,22 +130,19 @@ async def on_message(message: discord.Message):
     pattern = r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
     for level_match in re.findall(pattern, content):
         short_name = ShortName(level_match)
+        pb1_match = None
+        pb2_match = None
         if not message.channel.name.lower().startswith("pb2"):
             pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
-        else:
-            pb1_match = None
         
         if not message.channel.name.lower().startswith("pb1"):
             pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
-        else:
-            pb2_match = None
         
         if pb1_match is None and pb2_match is None: continue
 
         # ratelimit
         if spokenRecently.get(f"{message.channel.id}-{short_name}"): break
         spokenRecently[f"{message.channel.id}-{short_name}"] = time.time()
-        clear_old_ratelimits()
 
         rv = f"Level Names for `{short_name}`\n"
         
