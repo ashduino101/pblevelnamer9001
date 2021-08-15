@@ -6,7 +6,8 @@ const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES);
 const client = new Client({ intents: myIntents });
 const functions = require("./functions");
-fs = require('fs');
+const fs = require('fs');
+const difflib = require('difflib');
 
 //level images : TODO
 
@@ -70,6 +71,10 @@ function toggle_prefix(channel_id){
     return data[channel_id];
 }
 
+function loopup_via_name(levels, name){
+    return levels.filter(level => level["name"].toLowerCase() == name);
+}
+
 //checks for messages
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
@@ -86,6 +91,33 @@ client.on('messageCreate', async message => {
             message.channel.send("Prefix enabled for this channel.");
         else
             message.channel.send("Prefix disabled for this channel.")
+        return;
+    }
+    let lowerContent = message.content.toLocaleLowerCase();
+    if (lowerContent.startsWith("?name")){
+        let levelQuery = lowerContent.replace(/^\?name/, "").trim();
+        let rv = "";
+        // lookup pb1 levels
+        let pb1_level_names = functions.pb1_levels.filter(item => !item["short_name"].is_challenge_level).map(item => item["name"].toLowerCase());
+        let pb1_matches = difflib.getCloseMatches(levelQuery, pb1_level_names, 3, 0.1);
+        rv += "__PB1:__\n";
+        for (var pb1_match of pb1_matches){
+            let pb1_match_confidence = new difflib.SequenceMatcher(null, levelQuery, pb1_match).ratio();
+            let pb1_level = loopup_via_name(functions.pb1_levels, pb1_match)[0];
+            rv += `${pb1_level["short_name"]} ${pb1_world_names[pb1_level.short_name.world - 1]} ~ ${pb1_level["name"]} (${Math.floor(pb1_match_confidence*100)}% match)\n`;
+        }
+        rv += "\n";
+        
+        // lookup pb2 levels
+        let pb2_level_names = functions.pb2_levels.filter(item => !item["short_name"].is_challenge_level).map(item => item["name"].toLowerCase());
+        let pb2_matches = difflib.getCloseMatches(levelQuery, pb2_level_names, 3, 0.1);
+        rv += "__PB2__:\n";
+        for (var pb2_match of pb2_matches){
+            let pb2_match_confidence = new difflib.SequenceMatcher(null, levelQuery, pb2_match).ratio();
+            let pb2_level = loopup_via_name(functions.pb2_levels, pb2_match)[0];
+            rv += `${pb2_level["short_name"]} ${pb2_world_names[pb2_level.short_name.world - 1]} ~ ${pb2_level["name"]} (${Math.floor(pb2_match_confidence*100)}% match)\n`;
+        }
+        message.channel.send(rv);
         return;
     }
     
