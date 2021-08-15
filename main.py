@@ -25,10 +25,10 @@ class CustomHelp(commands.DefaultHelpCommand):
         )
         helpEmbed.set_thumbnail(url=thumbnail_url)
         helpEmbed.add_field(
-            name="Level Syntax", value="World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)"
+            name="Level Syntax", value="World-Level (e.g. 1-01, 1-1, 1-01c, 1-1c)", inline=False
         )
         helpEmbed.add_field(
-            name="Commands", value=", ".join([f"`{command.name}`" for command in self.context.bot.commands])
+            name="Commands", value="type `?help` + a command name to see more details, e.g. `?help name`\nCommands: " + ", ".join([f"`{command.name}`" for command in self.context.bot.commands if not command.hidden]), inline=False
         )
         helpEmbed.set_footer(text="Made by Masonator, ham, ashduino101, and Conqu3red", icon_url=thumbnail_url)
         helpEmbed.timestamp = execution_timestamp
@@ -80,7 +80,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
     else:
         raise error
 
-@bot.command(name="toggleprefix", help="Toggles prefix requirement for fetching levels by number in a channel")
+@bot.command(name="toggleprefix", help="Toggles prefix requirement for fetching levels by number in a channel", hidden=True)
 async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChannel=None):
     if channel is None:
         channel = ctx.message.channel
@@ -91,73 +91,79 @@ async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChan
         message = f"Prefix disabled for {channel.mention}"
     await ctx.send(message)
 
-@bot.command(name="name", help="reverse search a level by it's name")
+@bot.command(name="name", help="reverse search a level by it's name\nQuery must be at least 3 characters.")
 async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: str=""):
     if game:
         if game.lower() not in ("pb1", "pb2"):
             name = game + " " + name
             game = None
     
-    levelQuery = name.strip()
-    if not levelQuery:
+    levelQuery = name.strip().lower()
+    if len(levelQuery) < 3 or levelQuery == "help":
         await ctx.send_help(ctx.command)
         return
     rv = ""
 
     if not game or game == "pb1":
         # pb1 search
-        rv += "__PB1:__\n"
         matches = bestMatches(pb1_levels, levelQuery)
-        for level, confidence in matches:
-            rv += f"{level['short_name']} {pb1_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
-        rv += "\n"
+        if len(matches) > 0:
+            rv += "__**PB1:**__\n"
+            for level, confidence in matches:
+                rv += f"{level['short_name']} {pb1_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
 
     if not game or game == "pb2":
         # pb2 search
-        rv += "__PB2:__\n"
         matches = bestMatches(pb2_levels, levelQuery)
-        for level, confidence in matches:
-            rv += f"{level['short_name']} {pb1_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
+        if len(matches) > 0:
+            rv += "__**PB2:**__\n"
+            for level, confidence in matches:
+                rv += f"{level['short_name']} {pb2_world_names[level['short_name'].world - 1]} ~ {level['name']} ({math.floor(confidence)}% match)\n"
     
-    await ctx.message.channel.send(rv.strip())
+    rv = rv.strip()
+    await ctx.message.channel.send(rv if rv else "No results with an 85%+ match.")
 
 @bot.event
 @commands.has_permissions(manage_channels=True)
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-    content = message.content.lower()
-    pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
-    for level_match in re.findall(pattern, content):
-        short_name = ShortName(level_match)
-        pb1_match = None
-        pb2_match = None
-        if not message.channel.name.lower().startswith("pb2"):
-            pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
-        
-        if not message.channel.name.lower().startswith("pb1"):
-            pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
-        
-        if pb1_match is None and pb2_match is None: continue
-
-        # ratelimit
-        if spokenRecently.get(f"{message.channel.id}-{short_name}"): break
-        spokenRecently[f"{message.channel.id}-{short_name}"] = time.time()
-
-        rv = f"Level Names for `{short_name}`\n"
-        
-        if pb1_match and not short_name.is_challenge_level:
-            rv += f"PB1: {pb2_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
-        
-        if pb2_match:
-            rv += f"PB2: {pb2_world_names[short_name.world - 1]} ~ {pb2_match['name']}\n"
-            if short_name.is_challenge_level:
-                rv += f"Challenge: {pb2_match['detail']}"
-        
-        await message.channel.send(rv)
-        break
     
-    await bot.process_commands(message)
+    r = await bot.process_commands(message)
+    ctx = await bot.get_context(message)
+    if not ctx.command:
+        # only check for level names, if the user didn't run a command
+        content = message.content.lower()
+        pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
+        for level_match in re.findall(pattern, content):
+            short_name = ShortName(level_match)
+            pb1_match = None
+            pb2_match = None
+            if not message.channel.name.lower().startswith("pb2"):
+                pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
+            
+            if not message.channel.name.lower().startswith("pb1"):
+                pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
+            
+            if pb1_match is None and pb2_match is None: continue
+
+            # ratelimit
+            if spokenRecently.get(f"{message.channel.id}-{short_name}"): break
+            spokenRecently[f"{message.channel.id}-{short_name}"] = time.time()
+
+            rv = f"Level Names for `{short_name}`\n"
+            
+            if pb1_match and not short_name.is_challenge_level:
+                rv += f"PB1: {pb2_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
+            
+            if pb2_match:
+                rv += f"PB2: {pb2_world_names[short_name.world - 1]} ~ {pb2_match['name']}\n"
+                if short_name.is_challenge_level:
+                    rv += f"Challenge: {pb2_match['detail']}"
+            
+            await message.channel.send(rv)
+            break
+    
     
 
 bot.run(config["token"])

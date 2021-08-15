@@ -90,4 +90,4 @@ def bestMatches(levels: list, query: str, amount=3):
             s = s["name"]
         return process.default_processor(s, force_ascii=force_ascii)
 
-    return process.extractBests(query, sorting_levels, processor=processor, limit=3)
+    return process.extractBests(query, sorting_levels, processor=processor, limit=3, score_cutoff=85)
