@@ -15,7 +15,7 @@ class ShortName:
         self.valid = False
         
         short_name = short_name.lower()
-        result = re.match(r"([0-9]{1,2})-([0-9]{1,2})([Cc]?)", short_name)
+        result = re.search(r"([0-9]{1,2})-([0-9]{1,2})([Cc]?)", short_name)
         if result is None: return
         try:
             self.world = int(result[1])

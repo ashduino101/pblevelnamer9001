@@ -127,7 +127,7 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return
     content = message.content.lower()
-    pattern = r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
+    pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
     for level_match in re.findall(pattern, content):
         short_name = ShortName(level_match)
         pb1_match = None

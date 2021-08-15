@@ -4,3 +4,4 @@ package-lock.json
 config.json
 prefix_toggles.json
 venv
+__pycache__
