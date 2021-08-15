@@ -128,38 +128,42 @@ async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: st
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-    content = message.content.lower()
-    pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
-    for level_match in re.findall(pattern, content):
-        short_name = ShortName(level_match)
-        pb1_match = None
-        pb2_match = None
-        if not message.channel.name.lower().startswith("pb2"):
-            pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
-        
-        if not message.channel.name.lower().startswith("pb1"):
-            pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
-        
-        if pb1_match is None and pb2_match is None: continue
-
-        # ratelimit
-        if spokenRecently.get(f"{message.channel.id}-{short_name}"): break
-        spokenRecently[f"{message.channel.id}-{short_name}"] = time.time()
-
-        rv = f"Level Names for `{short_name}`\n"
-        
-        if pb1_match and not short_name.is_challenge_level:
-            rv += f"PB1: {pb2_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
-        
-        if pb2_match:
-            rv += f"PB2: {pb2_world_names[short_name.world - 1]} ~ {pb2_match['name']}\n"
-            if short_name.is_challenge_level:
-                rv += f"Challenge: {pb2_match['detail']}"
-        
-        await message.channel.send(rv)
-        break
     
-    await bot.process_commands(message)
+    r = await bot.process_commands(message)
+    ctx = await bot.get_context(message)
+    if not ctx.command:
+        # only check for level names, if the user didn't run a command
+        content = message.content.lower()
+        pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
+        for level_match in re.findall(pattern, content):
+            short_name = ShortName(level_match)
+            pb1_match = None
+            pb2_match = None
+            if not message.channel.name.lower().startswith("pb2"):
+                pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
+            
+            if not message.channel.name.lower().startswith("pb1"):
+                pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
+            
+            if pb1_match is None and pb2_match is None: continue
+
+            # ratelimit
+            if spokenRecently.get(f"{message.channel.id}-{short_name}"): break
+            spokenRecently[f"{message.channel.id}-{short_name}"] = time.time()
+
+            rv = f"Level Names for `{short_name}`\n"
+            
+            if pb1_match and not short_name.is_challenge_level:
+                rv += f"PB1: {pb2_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
+            
+            if pb2_match:
+                rv += f"PB2: {pb2_world_names[short_name.world - 1]} ~ {pb2_match['name']}\n"
+                if short_name.is_challenge_level:
+                    rv += f"Challenge: {pb2_match['detail']}"
+            
+            await message.channel.send(rv)
+            break
+    
     
 
 bot.run(config["token"])
