@@ -1,4 +1,5 @@
 from datetime import datetime
+from os import remove
 import time
 from typing import *
 import discord
@@ -81,6 +82,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         raise error
 
 @bot.command(name="toggleprefix", help="Toggles prefix requirement for fetching levels by number in a channel", hidden=True)
+@commands.has_permissions(manage_messages=True)
 async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChannel=None):
     if channel is None:
         channel = ctx.message.channel
@@ -92,7 +94,6 @@ async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChan
     await ctx.send(message)
 
 @bot.command(name="name", help="reverse search a level by it's name\nQuery must be at least 3 characters.")
-@commands.has_permissions(manage_channels=True)
 async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: str=""):
     if game:
         if game.lower() not in ("pb1", "pb2"):
@@ -133,7 +134,7 @@ async def on_message(message: discord.Message):
     ctx = await bot.get_context(message)
     if not ctx.command:
         # only check for level names, if the user didn't run a command
-        content = message.content.lower()
+        content = removeLinks(message.content.lower())
         pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
         for level_match in re.findall(pattern, content):
             short_name = ShortName(level_match)
@@ -154,7 +155,7 @@ async def on_message(message: discord.Message):
             rv = f"Level Names for `{short_name}`\n"
             
             if pb1_match and not short_name.is_challenge_level:
-                rv += f"PB1: {pb2_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
+                rv += f"PB1: {pb1_world_names[short_name.world - 1]} ~ {pb1_match['name']}\n"
             
             if pb2_match:
                 rv += f"PB2: {pb2_world_names[short_name.world - 1]} ~ {pb2_match['name']}\n"
