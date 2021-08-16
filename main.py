@@ -82,7 +82,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         raise error
 
 @bot.command(name="toggleprefix", help="Toggles prefix requirement for fetching levels by number in a channel", hidden=True)
-@commands.has_permissions(manage_channels=True)
+@commands.has_permissions(manage_messages=True)
 async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChannel=None):
     if channel is None:
         channel = ctx.message.channel
