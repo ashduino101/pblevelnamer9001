@@ -80,8 +80,11 @@ def loopup_via_name(levels: list, name: str):
 def count_identical_words(string1: str, string2: str) -> int:
     return sum(v for v in (Counter(string1.strip().split()) & Counter(string2.strip().split())).values())
 
-def bestMatches(levels: list, query: str, amount=3):
-    """Computes best matches using SequenceMatcher ratios"""
+def bestMatches(levels: list, query: str, amount=3, score_cutoff=85) -> List[Tuple[dict, int]]:
+    """Computes best matches using fuzzywuzzy.process.extractBests
+    
+    If there are any perfect matches, they are the only ones that are returned.
+    """
     query = query.lower()
     sorting_levels = filter(lambda level: not level["short_name"].is_challenge_level, levels)
 
@@ -90,4 +93,16 @@ def bestMatches(levels: list, query: str, amount=3):
             s = s["name"]
         return process.default_processor(s, force_ascii=force_ascii)
 
-    return process.extractBests(query, sorting_levels, processor=processor, limit=3, score_cutoff=85)
+    result = process.extractBests(
+        query,
+        sorting_levels,
+        processor=processor,
+        limit=amount,
+        score_cutoff=score_cutoff
+    )
+
+    if len(result) > 0 and result[0][1] == 100:
+        # we have some perfect matches
+        result = [r for r in result if r[1] == 100]
+    
+    return result

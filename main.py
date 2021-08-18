@@ -93,7 +93,7 @@ async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChan
         message = f"Prefix disabled for {channel.mention}"
     await ctx.send(message)
 
-@bot.command(name="name", help="reverse search a level by it's name\nQuery must be at least 3 characters.")
+@bot.command(name="name", help="Reverse search a level by its name.\nQuery must be at least 3 characters.", usage="[PB1/PB2] [name]")
 async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: str=""):
     if game:
         if game.lower() not in ("pb1", "pb2"):
@@ -138,13 +138,8 @@ async def on_message(message: discord.Message):
         pattern = r"^\?[0-9]{1,2}-[0-9]{1,2}[Cc]?\s*$" if requires_prefix(message.channel.id) else r"(?<!-)\b[0-9]{1,2}-[0-9]{1,2}[Cc]?\b(?!-)"
         for level_match in re.findall(pattern, content):
             short_name = ShortName(level_match)
-            pb1_match = None
-            pb2_match = None
-            if not message.channel.name.lower().startswith("pb2"):
-                pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
-            
-            if not message.channel.name.lower().startswith("pb1"):
-                pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
+            pb1_match = next(filter(lambda level: level["short_name"] == short_name, pb1_levels), None)
+            pb2_match = next(filter(lambda level: level["short_name"] == short_name, pb2_levels), None)
             
             if pb1_match is None and pb2_match is None: continue
 
