@@ -8,6 +8,8 @@ import re
 from discord.ext import commands, tasks
 from functions import *
 import math
+import logging
+logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
 
 
 with open("config.json") as f:
@@ -60,7 +62,7 @@ clear_old_ratelimits.start()
 
 @bot.event
 async def on_ready():
-    print("Bot Online.")
+    print("Bot online.")
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):
@@ -158,6 +160,7 @@ async def on_message(message: discord.Message):
                     rv += f"Challenge: {pb2_match['detail']}"
             
             await message.channel.send(rv)
+            logging.info("'" + message.content + "' contained a level number.")
             break
     
     
