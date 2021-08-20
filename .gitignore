@@ -3,5 +3,7 @@ node_modules
 package-lock.json
 config.json
 prefix_toggles.json
+pause_toggles.json
 venv
+log.log
 __pycache__

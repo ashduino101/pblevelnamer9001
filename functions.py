@@ -52,6 +52,7 @@ with open('pb2_levels.csv', newline='') as csvfile:
 def removeLinks(text: str) -> str:
     return re.sub(r"http\S+", "", text)
 
+
 prefix_storage_path = "./prefix_toggles.json"
 
 def load_prefix_data() -> Dict[int, bool]:
@@ -61,17 +62,42 @@ def load_prefix_data() -> Dict[int, bool]:
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+prefix_config = load_prefix_data() # in memory cache of channels that require prefix
+
 def requires_prefix(channel_id) -> bool:
     channel_id = str(channel_id)
-    return load_prefix_data().get(channel_id, False)
+    return prefix_config.get(channel_id, False)
 
 def toggle_prefix(channel_id) -> bool:
     channel_id = str(channel_id)
-    data = load_prefix_data()
-    data[channel_id] = not data.get(channel_id, False)
+    prefix_config[channel_id] = not prefix_config.get(channel_id, False)
     with open(prefix_storage_path, "w") as f:
-        json.dump(data, f)
-    return data[channel_id]
+        json.dump(prefix_config, f)
+    return prefix_config[channel_id]
+
+
+pause_storage_path = "./pause_toggles.json"
+
+def load_pause_data() -> Dict[int, bool]:
+    try:
+        with open(pause_storage_path) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+pause_config = load_pause_data() # in memory cache of paused channel
+
+def is_paused(channel_id) -> bool:
+    channel_id = str(channel_id)
+    return pause_config.get(channel_id, False)
+
+def toggle_pause(channel_id) -> bool:
+    channel_id = str(channel_id)
+    pause_config[channel_id] = not pause_config.get(channel_id, False)
+    with open(pause_storage_path, "w") as f:
+        json.dump(pause_config, f)
+    return pause_config[channel_id]
+
 
 def loopup_via_name(levels: list, name: str):
     name = name.lower()

@@ -1,5 +1,4 @@
 from datetime import datetime
-from os import remove
 import time
 from typing import *
 import discord
@@ -8,9 +7,12 @@ import re
 from discord.ext import commands, tasks
 from functions import *
 import math
+import sys
+import traceback
 import logging
-logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.DEBUG)
-
+import logging.config
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("root")
 
 with open("config.json") as f:
     config = json.load(f)
@@ -18,6 +20,18 @@ with open("config.json") as f:
 execution_timestamp = datetime.now()
 
 thumbnail_url = "https://cdn.discordapp.com/avatars/873283362561855488/906f1cdbc597b4a01f1df2140f395d8f.png"
+
+class ChannelPaused(commands.CheckFailure):
+    def __init__(self, *args):
+        super().__init__(message="Channel Paused", *args)
+
+def user_authorised():
+    return commands.check_any(commands.has_role("Robotics Engineer"), commands.has_permissions(manage_messages=True))
+
+def channel_not_paused(ctx: commands.Context):
+    if is_paused(ctx.message.channel.id):
+        raise ChannelPaused()
+    return True
 
 class CustomHelp(commands.DefaultHelpCommand):
     async def send_bot_help(self, mapping):
@@ -44,7 +58,7 @@ class CustomHelp(commands.DefaultHelpCommand):
         return await super().command_callback(ctx, command=command)
 
 # TODO: check for auth on toggleprefix command
-bot = commands.Bot(command_prefix="?", help_command=CustomHelp())
+bot = commands.Bot(command_prefix="?", help_command=CustomHelp(command_attrs = {"checks": [channel_not_paused]}))
 
 pb1_world_names = ["Alpine Meadows", "Desert Winds", "Snow Drift", "Ancient Ruins", "80s Fun Land", "Zen Gardens", "Tropical Paradise", "Area 52"];
 pb2_world_names = ["Pine Mountains", "Glowing Gorge", "Tranquil Oasis", "Sanguine Gulch", "Serenity Valley", "Steamtown", "N/A", "N/A"];
@@ -53,6 +67,7 @@ spokenRecently = {}
 
 @tasks.loop(seconds=10)
 async def clear_old_ratelimits():
+    logger.debug("Cleaning spoken recently timeouts.")
     now = time.time()
     for k in list(spokenRecently.keys()):
         if now - spokenRecently[k] > TIMEOUT_AMOUNT:
@@ -62,29 +77,35 @@ clear_old_ratelimits.start()
 
 @bot.event
 async def on_ready():
-    print("Bot online.")
+    logger.info(f"Bot Connected as '{bot.user}'.")
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):
     send_help = (commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError)
     
-    if isinstance(error, commands.CommandNotFound): # fails silently
-        pass
 
+    if isinstance(error, (commands.CommandNotFound, ChannelPaused)): # fails silently
+        pass
+    
     elif isinstance(error, send_help):
         await bot.help_command.command_callback(ctx, command=ctx.command.name)
 
     elif isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f'This command is on cooldown. Please wait {error.retry_after:.2f}s')
 
-    elif isinstance(error, commands.MissingPermissions):
-        await ctx.send('You do not have the permissions required to use this command.')
+    elif isinstance(error, commands.CheckFailure):
+        message = str(error)
+        if not message:
+            message = "Command didn't meet the criteria to be executed."
+        await ctx.send(message)
+    
     # If any other error occurs, prints to console.
     else:
+        logging.error(f"Uncaught Exception: {error}")
         raise error
 
 @bot.command(name="toggleprefix", help="Toggles prefix requirement for fetching levels by number in a channel", hidden=True)
-@commands.has_permissions(manage_messages=True)
+@user_authorised()
 async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChannel=None):
     if channel is None:
         channel = ctx.message.channel
@@ -93,9 +114,24 @@ async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChan
         message = f"Prefix enabled for {channel.mention}"
     else:
         message = f"Prefix disabled for {channel.mention}"
+    logging.info(message)
+    await ctx.send(message)
+
+@bot.command(name="togglepause", aliases=["pause", "unpause"], help="Toggles whether the bot responds to any messages in the given channel.", hidden=True)
+@user_authorised()
+async def toggle_prefix_command(ctx: commands.Context, channel: discord.TextChannel=None):
+    if channel is None:
+        channel = ctx.message.channel
+    is_paused = toggle_pause(channel.id)
+    if is_paused:
+        message = f"Paused responses in {channel.mention}"
+    else:
+        message = f"Unpaused responses in {channel.mention}"
+    logging.info(message)
     await ctx.send(message)
 
 @bot.command(name="name", help="Reverse search a level by its name.\nQuery must be at least 3 characters.", usage="[PB1/PB2] [name]")
+@commands.check(channel_not_paused)
 async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: str=""):
     if game:
         if game.lower() not in ("pb1", "pb2"):
@@ -129,10 +165,10 @@ async def reverse_search(ctx: commands.Context, game: Optional[str], *, name: st
 
 @bot.event
 async def on_message(message: discord.Message):
-    if message.author.bot:
-        return
+    if message.author.bot: return
     
     r = await bot.process_commands(message)
+    if is_paused(message.channel.id): return
     ctx = await bot.get_context(message)
     if not ctx.command:
         # only check for level names, if the user didn't run a command
@@ -160,7 +196,6 @@ async def on_message(message: discord.Message):
                     rv += f"Challenge: {pb2_match['detail']}"
             
             await message.channel.send(rv)
-            logging.info("'" + message.content + "' contained a level number.")
             break
     
     
